@@ -88,7 +88,7 @@ print(" Mode: %s" % vehicle.mode.name)    # settable
 #--------------------------------------------------    
 # TODO: radar script
 drone = TagFlight(lock=lock, vehicle=vehicle, alt=1.5, tag=1, testtime=30)
-telemetry = StoreTelemetry(lock=lock, vehicle=vehicle, interval = 0.5, droneclass=drone)
+telemetry = StoreTelemetry(lock=lock, vehicle=vehicle, interval = 0.001, droneclass=drone)
 camera = CameraCapture(lock=lock, interval=0.5, startafter=3) if not args.sitl else ""
 
 # run objects
