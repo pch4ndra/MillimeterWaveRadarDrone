@@ -28,7 +28,7 @@ class StoreTelemetry(threading.Thread):
         if self.vehicle == None:
             raise Exception("no_vehicle_excetion: No vehicle provided")
 
-        self._filename = datetime.now().strftime("%x-%X") + ".mat"
+        self._filename = datetime.now().strftime("%x-%X")
         self._filename = self._filename.replace(":","_",self._filename.count(":")) 
         self._filename = self._filename.replace("/","_",self._filename.count("/")) 
         self._filename = 'data\\telemetry\\'+self._filename
@@ -66,9 +66,11 @@ class StoreTelemetry(threading.Thread):
             time.sleep(self._kwargs.get("interval", 1.0))
         
         print(" Saving data to data/%s"%self._filename)
-        temp = open(self._filename, "w")
+        temp = open(self._filename + ".mat", "w")
         temp.close()
-        sio.savemat(self._filename, {name: col.values for name, col in self._data.items()})
+        sio.savemat(self._filename + ".mat", {name: col.values for name, col in self._data.items()})
+
+        self._data.to_csv(self._filename + ".csv")
         
         # if pandas dataframe
         # self._data.to_csv(index=False)

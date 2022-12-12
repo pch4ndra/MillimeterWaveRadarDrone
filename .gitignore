@@ -1,6 +1,7 @@
-# mat and jpeg files created by program
+# data files created by program
 *.jpeg
 *.mat
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
