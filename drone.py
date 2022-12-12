@@ -22,7 +22,7 @@ from tqdm import tqdm
 # -- Declare Program Values
 parser = argparse.ArgumentParser(
                     prog = 'MMWave Radar Drone',
-                    description = 'Start Drone Script',
+                    description = 'Millimeter Wave Radar Drone Script Handler',
                     epilog = 'Developed by Pranav Chandra')
 parser.add_argument('--connect', help='connect to vehicle', action='store_true')
 parser.add_argument("--sitl", help="run a simulation drone", action='store_true')
