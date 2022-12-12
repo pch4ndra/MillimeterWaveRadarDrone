@@ -60,7 +60,8 @@ class TagFlight(threading.Thread):
                 print("Exit 'standard' mission when start heading to final waypoint (3)")
                 print("Waiting %i seconds for Tag Test"%self.TAG_TEST_TIME)
                 for t in range(self.TAG_TEST_TIME):
-                    print("Conducting Tag Test for %i seconds"%(self.TAG_TEST_TIME-t))
+                    statement = "Loading" + "." * (t % 4) + " " * (4 - t % 4)
+                    print (statement, end="\r")
                     time.sleep(1)
                 print("Finished Conducting Tag Test for %i seconds ==> Returning Home"%(self.TAG_TEST_TIME))
                 break

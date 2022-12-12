@@ -8,13 +8,17 @@ from pymavlink import mavutil
 import argparse
 from curses import baudrate
 from datetime import datetime
-# from library.Rad24GHz import Rad24GHz
 import scipy.io as sio
 import pandas as pd
 import logging
 import threading
-
 from tqdm import tqdm
+
+# TODO: Update Radar Package
+# from library.Rad24GHz import Rad24GHz
+from library.DataScripts.storetelemetry import StoreTelemetry
+from library.FlightScripts.squareflight import SquareFlight
+from library.FlightScripts.tagflight import TagFlight
 
 #--------------------------------------------------
 #-------------- ESTABLISH ARGUMENTS  
@@ -24,29 +28,26 @@ parser = argparse.ArgumentParser(
                     prog = 'MMWave Radar Drone',
                     description = 'Millimeter Wave Radar Drone Script Handler',
                     epilog = 'Developed by Pranav Chandra')
-parser.add_argument('--connect', help='connect to vehicle', action='store_true')
+# parser.add_argument('--connect', help='connect to vehicle', action='store_true')
 parser.add_argument("--sitl", help="run a simulation drone", action='store_true')
 args = parser.parse_args()
 
 #--------------------------------------------------
-#-------------- IMPORT LIBRARIES  
+#-------------- IMPORT REMAINING LIBRARIES  
 #--------------------------------------------------    
-from library.DataScripts.storetelemetry import StoreTelemetry
 if not args.sitl:
     from library.DataScripts.camera import CameraCapture
-from library.FlightScripts.squareflight import SquareFlight
-from library.FlightScripts.tagflight import TagFlight
 
 #--------------------------------------------------
 #-------------- PARSE ARGUMENTS  
 #--------------------------------------------------    
-if not args.connect:
-    sys.exit("connect command not found")
+# if not args.connect:
+#     sys.exit("connect command not found")
 
 #--------------------------------------------------
 #-------------- INITIALIZE  
 #--------------------------------------------------      
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.NOTSET,
                     format="%(asctime)s (T:%(thread)d):- %(message)s")
 
 lock = threading.Lock()
@@ -107,8 +108,8 @@ if not args.sitl:
 
 #-- Wait 5 seconds for threads termination
 print (">> Closing vehicle connection in 5 seconds...")
-for sec in tqdm(range(5)):
-    continue
+for sec in range(5):
+    time.sleep(1)
 filename = telemetry.get_filename()
 
 #-- Close connection
@@ -120,3 +121,4 @@ if args.sitl:
     # Shut down simulator
     sitl.stop()
     print("Simulation Completed")
+
