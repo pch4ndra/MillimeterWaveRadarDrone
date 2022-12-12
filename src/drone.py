@@ -1,34 +1,47 @@
 #-- Library imports
 import time
 import math
+import sys
 from dronekit import connect, VehicleMode, LocationGlobalRelative, Command, LocationGlobal
+import dronekit_sitl
 from pymavlink import mavutil
 import argparse
 from curses import baudrate
 from datetime import datetime
-from library.Rad24GHz import Rad24GHz
+# from library.Rad24GHz import Rad24GHz
 import scipy.io as sio
 import pandas as pd
 import logging
 import threading
 
-from src.library.DataScripts.storetelemetry import StoreTelemetry
-from src.library.DataScripts.camera import CameraCapture
-from src.library.FlightScripts.squareflight import SquareFlight
-from src.library.FlightScripts.tagflight import TagFlight
-
 from tqdm import tqdm
 
+#--------------------------------------------------
+#-------------- ESTABLISH ARGUMENTS  
+#--------------------------------------------------    
+# -- Declare Program Values
+parser = argparse.ArgumentParser(
+                    prog = 'MMWave Radar Drone',
+                    description = 'Start Drone Script',
+                    epilog = 'Developed by Pranav Chandra')
+parser.add_argument('--connect', help='connect to vehicle', action='store_true')
+parser.add_argument("--sitl", help="run a simulation drone", action='store_true')
+args = parser.parse_args()
+
+#--------------------------------------------------
+#-------------- IMPORT LIBRARIES  
+#--------------------------------------------------    
+from library.DataScripts.storetelemetry import StoreTelemetry
+if not args.sitl:
+    from library.DataScripts.camera import CameraCapture
+from library.FlightScripts.squareflight import SquareFlight
+from library.FlightScripts.tagflight import TagFlight
 
 #--------------------------------------------------
 #-------------- PARSE ARGUMENTS  
 #--------------------------------------------------    
-# -- Establish Connection System
-# parser = argparse.ArgumentParser(description='commands')
-# parser.add_argument('--connect', help='connect to vehicle')
-# parser.add_argument("--verbosity", help="increase output verbosity")
-# args = parser.parse_args()
-
+if not args.connect:
+    sys.exit("connect command not found")
 
 #--------------------------------------------------
 #-------------- INITIALIZE  
@@ -42,49 +55,68 @@ lock = threading.Lock()
 #-------------- CONNECTION  
 #--------------------------------------------------    
 # -- Declare Connection System
-connection_string = "/dev/ttyACM0" # USB Connection
-baud_rate = 115200
-# connection_string = "/dev/ttyAMA0" # Serial Connection
+if args.sitl:
+    sitl = dronekit_sitl.start_default()
+    connection_string = sitl.connection_string()
+else: # if real drone used
+    connection_string = "/dev/ttyACM0" # USB Connection
+    # connection_string = "/dev/ttyAMA0" # Serial Connection
+    baud_rate = 115200
 
 # -- Connect to the vehicle
 print(">> Connecting with the UAV...")
-vehicle = connect(connection_string, baud=baud_rate, wait_ready=True) #- wait_ready flag hold the program untill all the parameters are been read (=, not .)
+if args.sitl:
+    vehicle = connect(connection_string, wait_ready=True)
+else: # if real drone used
+    vehicle = connect(connection_string, baud=baud_rate, wait_ready=True) #- wait_ready flag hold the program untill all the parameters are been read (=, not .)
 print(">> Connection with UAV established on %s"%connection_string)
+
+#--------------------------------------------------
+#-------------- PRINT SOME VEHICLE ATTRIBUTES  
+#--------------------------------------------------  
+# Get some vehicle attributes (state)
+print("Get some vehicle attribute values:")
+print(" GPS: %s" % vehicle.gps_0)
+print(" Battery: %s" % vehicle.battery)
+print(" Last Heartbeat: %s" % vehicle.last_heartbeat)
+print(" Is Armable?: %s" % vehicle.is_armable)
+print(" System status: %s" % vehicle.system_status.state)
+print(" Mode: %s" % vehicle.mode.name)    # settable
 
 #--------------------------------------------------
 #-------------- MAIN FUNCTION  
 #--------------------------------------------------    
 # TODO: radar script
 drone = TagFlight(lock=lock, vehicle=vehicle, alt=1.5, tag=1, testtime=30)
-telemetry = StoreTelemetry(lock=lock, vehicle=vehicle, interval = 0.5)
-camera = CameraCapture(lock=lock, interval=0.5, startafter=3)
+telemetry = StoreTelemetry(lock=lock, vehicle=vehicle, interval = 0.5, droneclass=drone)
+camera = CameraCapture(lock=lock, interval=0.5, startafter=3) if not args.sitl else ""
 
 # run objects
 drone.start()
 telemetry.start()
-camera.start()
+if not args.sitl:
+    camera.start()
 
 # join threads to background
 drone.join()
 telemetry.join()
-camera.join()
+if not args.sitl:
+    camera.join()
 
-# wait until mission complete
-while drone.mission_in_progress():
-    continue
-
-# stop telemetry reading and save file
-telemetry.mission_complete()
-camera.mission_complete()
-
+#-- Wait until mission threads complete
 
 #-- Wait 5 seconds for threads termination
 print (">> Closing vehicle connection in 5 seconds...")
 for sec in tqdm(range(5)):
     continue
-
+filename = telemetry.get_filename()
 
 #-- Close connection
 vehicle.close()
 print (">> Vehicle connection closed")
 
+#-- Stop simulation if needed
+if args.sitl:
+    # Shut down simulator
+    sitl.stop()
+    print("Simulation Completed")

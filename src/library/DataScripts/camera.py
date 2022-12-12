@@ -18,6 +18,7 @@ class CameraCapture(threading.Thread):
         self._kwargs = kwargs
         self._lock = kwargs.get("lock", None)
         self._mission_in_progress = True
+        self.droneclass = kwargs.get("droneclass", None)
 
         self.camera = PiCamera()
         self.camera.start_preview()
@@ -25,8 +26,11 @@ class CameraCapture(threading.Thread):
 
     def run(self):
         time.sleep(self._kwargs.get("startafter", 1.0))
-        while (self._mission_in_progress):
-            self.camera.capture('data\\camera\\{0}.jpeg'.format(datetime.now().strftime("%x-%X")))
+        while (self.droneclass.mission_in_progress()):
+            filename = datetime.now().strftime("%x-%X")
+            filename = filename.replace(":","_",filename.count(":")) 
+            filename = filename.replace("/","_",filename.count("/")) 
+            self.camera.capture('data\\camera\\{0}.jpeg'.format())
             time.sleep(self._kwargs.get("interval", 1.0))
         self.camera.stop_preview()
         print(" Image Capture Complete")       

@@ -23,11 +23,15 @@ class StoreTelemetry(threading.Thread):
         self._lock = kwargs.get("lock", None)
         self.vehicle = kwargs.get("vehicle", None)
         self._mission_in_progress = True
+        self.droneclass = kwargs.get("droneclass", None)
 
         if self.vehicle == None:
             raise Exception("no_vehicle_excetion: No vehicle provided")
 
         self._filename = datetime.now().strftime("%x-%X") + ".mat"
+        self._filename = self._filename.replace(":","_",self._filename.count(":")) 
+        self._filename = self._filename.replace("/","_",self._filename.count("/")) 
+        self._filename = 'data\\telemetry\\'+self._filename
         # self._filename = datetime.now().strftime("%x-%X") + ".csv"
 
         self._data = pd.DataFrame(columns = ['Timestamp', 'Autopilot Firmware version', 
@@ -40,8 +44,8 @@ class StoreTelemetry(threading.Thread):
 
 
     def run(self):
-        while (self._mission_in_progress):
-            self._data.loc[len(self._data)] = [datetime.now().strftime("%x-%X"), self.vehicle.version, 
+        while (self.droneclass.mission_in_progress()):
+            data = [datetime.now().strftime("%x-%X"), self.vehicle.version, 
                                                 self.vehicle.capabilities.ftp, 
                                                 self.vehicle.location.global_frame, 
                                                 self.vehicle.location.global_relative_frame, 
@@ -56,10 +60,15 @@ class StoreTelemetry(threading.Thread):
                                                 self.vehicle.is_armable, 
                                                 self.vehicle.system_status.state, 
                                                 self.vehicle.mode.name, self.vehicle.armed]
+            for ele in range(len(data)):
+                data[ele] = str(data[ele])
+            self._data.loc[len(self._data)] = data
             time.sleep(self._kwargs.get("interval", 1.0))
         
-        print(" Saving data to data\\%s"%self._filename)
-        sio.savemat('data\\telemetry\\'+self._filename, {name: col.values for name, col in self._data.items()})
+        print(" Saving data to data/%s"%self._filename)
+        temp = open(self._filename, "w")
+        temp.close()
+        sio.savemat(self._filename, {name: col.values for name, col in self._data.items()})
         
         # if pandas dataframe
         # self._data.to_csv(index=False)
@@ -75,6 +84,9 @@ class StoreTelemetry(threading.Thread):
     
     def mission_complete(self):
         self._mission_in_progress = False
+
+    def get_filename(self):
+        return self._filename
 
 
 # lock = None

@@ -30,11 +30,11 @@ class SquareFlight(threading.Thread):
     
     def run(self):
         print('Create a new mission (for current location)')
-        SquareFlight.adds_square_mission(self.vehicle.location.global_frame,10)
+        self.adds_square_mission(self.vehicle.location.global_frame,10)
 
 
         # From Copter 3.3 you will be able to take off using a mission item. Plane must take off using a mission item (currently).
-        SquareFlight.arm_and_takeoff(10)
+        self.arm_and_takeoff(10)
 
         print(">>> Starting mission")
         # Reset mission set to first (0) waypoint
@@ -51,7 +51,7 @@ class SquareFlight(threading.Thread):
 
         while True:
             nextwaypoint=self.vehicle.commands.next
-            print('Distance to waypoint (%s): %s' % (nextwaypoint, SquareFlight.distance_to_current_waypoint()))
+            print('Distance to waypoint (%s): %s' % (nextwaypoint, self.distance_to_current_waypoint()))
         
             if nextwaypoint==3: #Skip to next waypoint
                 print('Skipping to Waypoint 5 when reach waypoint 3')
@@ -134,7 +134,7 @@ class SquareFlight(threading.Thread):
         lon = missionitem.y
         alt = missionitem.z
         targetWaypointLocation = LocationGlobalRelative(lat,lon,alt)
-        distancetopoint = SquareFlight.get_distance_metres(self.vehicle.location.global_frame, targetWaypointLocation)
+        distancetopoint = self.get_distance_metres(self.vehicle.location.global_frame, targetWaypointLocation)
         return distancetopoint
 
 
@@ -167,10 +167,10 @@ class SquareFlight(threading.Thread):
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
 
         #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
-        point1 = SquareFlight.get_location_metres(aLocation, aSize, -aSize)
-        point2 = SquareFlight.get_location_metres(aLocation, aSize, aSize)
-        point3 = SquareFlight.get_location_metres(aLocation, -aSize, aSize)
-        point4 = SquareFlight.get_location_metres(aLocation, -aSize, -aSize)
+        point1 = self.get_location_metres(aLocation, aSize, -aSize)
+        point2 = self.get_location_metres(aLocation, aSize, aSize)
+        point3 = self.get_location_metres(aLocation, -aSize, aSize)
+        point4 = self.get_location_metres(aLocation, -aSize, -aSize)
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 11))
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 12))
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point3.lat, point3.lon, 13))

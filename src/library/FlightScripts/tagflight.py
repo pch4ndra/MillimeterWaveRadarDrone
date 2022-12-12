@@ -31,11 +31,11 @@ class TagFlight(threading.Thread):
     
     def run(self):
         print('Create a new mission (for current location)')
-        TagFlight.adds_mission(self.vehicle.location.global_frame, self.DISTANCE_FROM_TAG)
+        self.adds_mission(self.vehicle.location.global_frame, self.DISTANCE_FROM_TAG)
 
 
         # Takeoff to FLIGHT_ALT meters
-        TagFlight.arm_and_takeoff(self.FLIGHT_ALT)
+        self.arm_and_takeoff(self.FLIGHT_ALT)
 
         print("Starting mission")
         # Reset mission set to first (0) waypoint
@@ -51,7 +51,7 @@ class TagFlight(threading.Thread):
         #   distance to the next waypoint.
         while True:
             nextwaypoint=self.vehicle.commands.next
-            print('Distance to waypoint (%s): %s' % (nextwaypoint, TagFlight.distance_to_current_waypoint()))
+            print('Distance to waypoint (%s): %s' % (nextwaypoint, self.distance_to_current_waypoint()))
         
             # if nextwaypoint==2: #Skip to next waypoint
             #     print('AT Waypoint 2. Moving to Final Waypoint 3')
@@ -68,7 +68,7 @@ class TagFlight(threading.Thread):
 
         print('Return to launch')
         self.vehicle.mode = VehicleMode("RTL")
-        self.vehicle.mode = VehicleMode("Land")
+        # self.vehicle.mode = VehicleMode("Land")
 
         # Finish flight
         print("Flight Complete")
@@ -140,7 +140,7 @@ class TagFlight(threading.Thread):
         lon = missionitem.y
         alt = missionitem.z
         targetWaypointLocation = LocationGlobalRelative(lat,lon,alt)
-        distancetopoint = TagFlight.get_distance_metres(self.vehicle.location.global_frame, targetWaypointLocation)
+        distancetopoint = self.get_distance_metres(self.vehicle.location.global_frame, targetWaypointLocation)
         return distancetopoint
 
 
@@ -175,7 +175,7 @@ class TagFlight(threading.Thread):
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, self.FLIGHT_ALT))
 
         #Define the MAV_CMD_NAV_WAYPOINT locations and add the commands
-        point1 = TagFlight.get_location_metres(aLocation, 0, aSize)
+        point1 = self.get_location_metres(aLocation, 0, aSize)
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, self.FLIGHT_ALT))
         #add dummy waypoint "2" (lets us know when have reached destination)
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, self.FLIGHT_ALT))
