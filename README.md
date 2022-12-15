@@ -15,7 +15,7 @@ This folder will contain all data that we store from the program. For example, u
 ### ./library/
 
 This folder contains the threading class for the PiCamera, Telemetry, and Drone Flight Path Scripts. Since each different thread needs to built in its own class, I placed each one in a different python module and placed the data collection threads under ./library/DataScripts and the flight path scripts under ./library/FlightScripts.
-#### Templates
+###### Templates
 There are two files under this folder with "template". These are template frameworks that can be used to develop future functionalities (ie Radar Software) that need to be performed in threads. The flight_template.py is used to add more predetermined flight paths and data_template.py should be used for any data that needs to be collected during the duration of the flight.
 
 ### drone.py
